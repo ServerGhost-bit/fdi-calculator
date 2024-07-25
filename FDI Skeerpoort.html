@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FDI Indicator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            background-color: #f5f5f5; /* Default background color */
+            transition: background-color 0.5s ease; /* Smooth transition for background color */
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        h1, h2 {
+            text-align: center;
+        }
+        .logo {
+            width: 283px;
+            height: 95px;
+            margin: 0 auto;
+        }
+        .data, .fdi-result {
+            margin: 10px 0;
+        }
+        .fdi-image {
+            display: none;
+            text-align: center;
+        }
+        .fdi-image img {
+            max-width: 100%;
+            height: auto;
+        }
+        .last-updated {
+            font-size: 0.9em;
+            color: #555;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="FDI/logo.jpg" alt="Logo" class="logo">
+        <h1>FDI Rating Skeerpoort</h1>
+        <p class="last-updated" id="last-updated">Last updated: </p>
+        <div class="data">
+            <h2>Weather Data</h2>
+            <p>Temperature: <span id="temperature"></span> °C</p>
+            <p>Humidity: <span id="humidity"></span> %</p>
+            <p>Wind Speed: <span id="windSpeed"></span> km/h</p>
+        </div>
+        <div class="fdi-result">
+            <h2>Fire Danger Index (FDI)</h2>
+            <p id="fdi"></p>
+        </div>
+        <div class="fdi-image" id="fdi-image">
+            <img id="fdi-img" src="" alt="FDI Indicator">
+        </div>
+    </div>
+
+    <script>
+        async function fetchWeatherData() {
+            try {
+                const apiKey = 'b0b798b4e4b5499fbdb152152242507';
+                const location = 'Skeerpoort, South Africa';
+                const response = await fetch(`https://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=${location}&days=1`);
+                const data = await response.json();
+
+                const temperature = data.forecast.forecastday[0].day.avgtemp_c;
+                const humidity = data.forecast.forecastday[0].day.avghumidity;
+                const windSpeed = data.forecast.forecastday[0].day.maxwind_kph;
+
+                document.getElementById('temperature').textContent = temperature;
+                document.getElementById('humidity').textContent = humidity;
+                document.getElementById('windSpeed').textContent = windSpeed;
+
+                const fdi = calculateFDI(temperature, humidity, windSpeed);
+                document.getElementById('fdi').textContent = fdi;
+
+                showFDIImageAndColor(fdi);
+                updateLastUpdatedTime();
+            } catch (error) {
+                console.error('Error fetching weather data:', error);
+                document.getElementById('fdi').textContent = 'Error fetching data';
+            }
+        }
+
+        function calculateFDI(temperature, humidity, windSpeed) {
+            // Placeholder calculation for FDI
+            return (temperature + humidity + windSpeed) / 3;
+        }
+
+        function showFDIImageAndColor(fdi) {
+            const fdiImage = document.getElementById('fdi-image');
+            const fdiImg = document.getElementById('fdi-img');
+            const body = document.body;
+
+            let imageUrl = '';
+            let backgroundColor = '';
+
+            if (fdi > 75) {
+                imageUrl = 'FDI/red.jpg'; // Replace with the actual path to the red image
+                backgroundColor = '#EA2025';
+            } else if (fdi >= 61 && fdi <= 75) {
+                imageUrl = 'FDI/orange.jpg'; // Replace with the actual path to the orange image
+                backgroundColor = '#EB6425';
+            } else if (fdi >= 56 && fdi <= 60) {
+                imageUrl = 'FDI/yellow.jpg'; // Replace with the actual path to the yellow image
+                backgroundColor = '#F6EB14';
+            } else if (fdi >= 21 && fdi <= 45) {
+                imageUrl = 'FDI/green.jpg'; // Replace with the actual path to the green image
+                backgroundColor = '#B6D042';
+            } else if (fdi >= 0 && fdi <= 20) {
+                imageUrl = 'FDI/blue.jpg'; // Replace with the actual path to the blue image
+                backgroundColor = '#B4C4E3';
+            }
+
+            fdiImg.src = imageUrl;
+            body.style.backgroundColor = backgroundColor;
+            fdiImage.style.display = 'block';
+        }
+
+        function updateLastUpdatedTime() {
+            const now = new Date();
+            const formattedTime = now.toLocaleString();
+            document.getElementById('last-updated').textContent = `Last updated: ${formattedTime}`;
+        }
+
+        // Fetch data on page load and every hour
+        fetchWeatherData();
+        setInterval(fetchWeatherData, 3600000); // 3600000ms = 1 hour
+    </script>
+</body>
+</html>
